@@ -1,0 +1,38 @@
+import { buffer } from "micro";
+import * as admin from "firebase-admin";
+// Secure a connection to firebase from Backend
+const serviceAccount = require("../../Permissions.json");
+// so this code is for initializing our app only once not again and again....
+const app = !admin.apps.length
+  ? admin.initializeApp({
+      credentials: admin.credential.cert(serviceAccount),
+    })
+  : admin.app();
+
+//   Establishing content to Stripe
+const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+const endpointSecret = process.env.STRIPE_SIGNING_SECRET;
+export default async (req, res) => {
+  if (req.method === "POST") {
+    const requestBuffer = await buffer(req);
+    const payload = requestBuffer.toString();
+    const sig = req.headers["stripe-signature"];
+    let event;
+
+    // verify that the event posted came from the Stripe
+    try {
+      event = stripe.webhooks.constructEvent(payload, sig, endpointSecret);
+    } catch (err) {
+      console.log("Error", err.message);
+      return res.status(400).send(`Webhookerror : ${err.message}`);
+    }
+  }
+
+  //   handle the Special checkout Session...completed Event
+  if (event.type === "checkout.session.completed") {
+    const session = event.data.object;
+
+    // fulfil the orderr....
+  }
+};

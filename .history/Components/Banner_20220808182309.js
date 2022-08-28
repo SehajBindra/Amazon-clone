@@ -1,0 +1,30 @@
+import React from "react";
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { Carousel } from "react-responsive-carousel";
+
+function Banner() {
+  return (
+    <div className="relative">
+      <Carousel
+        autoPlay
+        infiniteLoop
+        showStatus={false}
+        showIndicators={false}
+        showThumbs={false}
+        interval={5000}
+      >
+        <div>
+          <img loading="lazy" src="https://links.papreact.com/gi1" alt="" />
+        </div>
+        <div>
+          <img src="https://links.papreact.com/6ff" alt="" />
+        </div>
+        <div>
+          <img src="https://links.papreact.com/7ma" alt="" />
+        </div>
+      </Carousel>
+    </div>
+  );
+}
+
+export default Banner;
