@@ -1,10 +1,12 @@
 import React from "react";
 import Header from "../Components/Header";
-import { useSession } from "next-auth/react";
+import { useSession, getSession } from "next-auth/react";
 
 import { db } from "../firebase";
+import moment from "moment";
 
 function Orders({ orders }) {
+  console.log(orders);
   const { data: session, status } = useSession();
   return (
     <div>
@@ -27,7 +29,7 @@ export async function getServerSideProps(context) {
   const stripe = require("stripe")(process.STRIPE_SECRET_KEY);
   //    GET THE USER LOGIN CREDENTIALS....
 
-  const session = unstable_getServerSession(context);
+  const session = await getSession(context);
 
   if (!session) {
     return {
@@ -35,5 +37,33 @@ export async function getServerSideProps(context) {
     };
   }
 
-  const stripeOrders = await db.collection("users").doc;
+  // firebase db
+  const stripeOrders = await db
+    .collection("users")
+    .doc(session.user.email)
+    .collection("orders")
+    .orderBy("timestamp", "desc")
+    .get();
+
+  // Stripe Orders
+  const orders = await Promise.all(
+    stripeOrders.docs.map(async (order) => ({
+      id: order.id,
+      amount: order.data().amount,
+      amountShipping: order.data().amount_shipping,
+      images: order.data().images,
+      timestamp: moment(order.data().timestamp.toDate()).unix(),
+      items: (
+        await stripe.checkout.sessions.listLineItems(order.id, {
+          limit: 100,
+        })
+      ).data,
+    }))
+  );
+
+  return {
+    props: {
+      orders,
+    },
+  };
 }
