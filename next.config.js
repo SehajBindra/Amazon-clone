@@ -1,6 +1,11 @@
 module.exports = {
   images: {
-    domains: ["images.unsplash.com", "links.papareact.com", "fakestoreapi.com"],
+    domains: [
+      "images.unsplash.com",
+      "links.papareact.com",
+      "fakestoreapi.com",
+      "localhost",
+    ],
   },
 
   env: {
